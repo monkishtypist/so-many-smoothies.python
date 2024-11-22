@@ -1,0 +1,90 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# Environment variables
+.env
+.env.*
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs and debug files
+*.log
+*.out
+*.err
+debug.log
+
+# Testing and coverage
+.tox/
+.nox/
+*.cover
+*.coverage
+*.coverage.*
+.cache
+coverage.xml
+nosetests.xml
+*.pytest_cache
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# pyenv
+.python-version
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Packaging
+*.egg-info/
+.installed.cfg
+*.egg
+*.whl
+dist/
+build/
+site/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# S3 buckets
+*.s3cfg
+
+# GitHub Actions workflow files
+.github/workflows/*.yml.lock
+.github/workflows/.lock
+
+# Node.js for auxiliary files (if applicable)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Custom
+*.bak
+*.swp
