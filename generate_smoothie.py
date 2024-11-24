@@ -261,7 +261,7 @@ def generate_image(prompt):
         logger.error(f"An error occurred during image generation: {e}")
         raise
 
-def upload_recipe_to_sanity(recipe):
+def upload_recipe_to_sanity(recipe, recipe_prompt, image_prompt):
     """
     Uploads the recipe document to Sanity and returns the document ID.
     """
@@ -276,6 +276,8 @@ def upload_recipe_to_sanity(recipe):
                     "steps": recipe["steps"],
                     "tags": recipe["tags"],
                     "date": datetime.now().isoformat(),
+                    "recipePrompt": recipe_prompt,
+                    "imagePrompt": image_prompt,
                 }
             }
         ]
@@ -382,13 +384,13 @@ def link_image_asset_to_recipe(document_id, asset_id):
         logger.error(f"An error occurred in link_image_asset_to_recipe: {e}")
         raise
 
-def upload_to_sanity(recipe, image_filename):
+def upload_to_sanity(recipe, image_filename, recipe_prompt, image_prompt):
     """
     Uploads the recipe and associated image to Sanity.
     """
     try:
         # Upload the recipe
-        document_id = upload_recipe_to_sanity(recipe)
+        document_id = upload_recipe_to_sanity(recipe, recipe_prompt, image_prompt)
 
         # Upload the image asset
         image_asset = upload_image_asset(image_filename)
@@ -408,19 +410,16 @@ def upload_to_sanity(recipe, image_filename):
         raise
 
 def main(random_choice=False, dry_run=False):
-    """
-    Main script logic.
-    """
     logger.info("Starting the script...")
-    prompt = get_prompt(random_choice)
-    logger.debug(f"Using Prompt:\n{prompt}")
+    recipe_prompt = get_prompt(random_choice)
+    logger.debug(f"Using Recipe Prompt:\n{recipe_prompt}")
 
     try:
-        recipe = fetch_recipe_from_openai(prompt)
+        recipe = fetch_recipe_from_openai(recipe_prompt)
         logger.info("Recipe fetched successfully.")
 
-        # Generate image even in dry-run mode
-        image_filename = generate_image(recipe["image_prompt"])
+        image_prompt = recipe["image_prompt"]
+        image_filename = generate_image(image_prompt)
         logger.info(f"Image saved at: {image_filename}")
 
         if dry_run:
@@ -429,7 +428,7 @@ def main(random_choice=False, dry_run=False):
             for key, value in recipe.items():
                 logger.info(f"{key.capitalize()}: {value}")
             logger.info(f"Generated Image File: {image_filename}")
-            return  # Exit after showing the parsed recipe and image file
+            return
 
         # Check for uniqueness
         existing_recipes = get_existing_recipes()
@@ -441,7 +440,7 @@ def main(random_choice=False, dry_run=False):
         recipe["title"] = unique_title
 
         # Upload to Sanity
-        upload_to_sanity(recipe, image_filename)
+        upload_to_sanity(recipe, image_filename, recipe_prompt, image_prompt)
         logger.info(f"Uploaded recipe: {recipe['title']}")
 
     except Exception as e:

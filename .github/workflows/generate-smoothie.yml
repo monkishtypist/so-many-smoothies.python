@@ -44,3 +44,16 @@ jobs:
           python generate_smoothie.py \
             ${{ inputs.random == 'true' && '--random' || '' }} \
             ${{ inputs.dry_run == 'true' && '--dry-run' || '' }}
+
+      - name: Trigger Next.js Rebuild
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: secrets.NEXTJS_REPO_OWNER,
+              repo: secrets.NEXTJS_REPO_NAME,
+              event_type: 'rebuild'
+            })
+          
