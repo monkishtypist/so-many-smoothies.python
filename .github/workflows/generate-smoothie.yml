@@ -52,8 +52,8 @@ jobs:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           script: |
             await github.rest.repos.createDispatchEvent({
-              owner: secrets.NEXTJS_REPO_OWNER,
-              repo: secrets.NEXTJS_REPO_NAME,
+              owner: '${{ secrets.NEXTJS_REPO_OWNER }}',
+              repo: '${{ secrets.NEXTJS_REPO_NAME }}',
               event_type: 'rebuild'
             })
           
