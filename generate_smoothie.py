@@ -7,9 +7,7 @@ import re
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
-from io import BytesIO
-from PIL import Image
-import base64  # Add this import
+import base64
 
 # Load environment variables
 load_dotenv()
@@ -51,7 +49,7 @@ DAILY_PROMPTS = [
     "Generate a refreshing Green smoothie recipe packed with leafy greens, superfoods, and hydrating ingredients.",
     "Generate a unique smoothie recipe inspired by South Asian flavors like tamarind, cardamom, rosewater, or turmeric.",
     "Generate a rich and indulgent smoothie recipe inspired by desserts, focusing on flavors like chocolate, caramel, or hazelnut.",
-    "Generate a vibrant and creative smoothie recipe inspired by diverse African flavors, such as Northern Africa, Central Africa, Southern Africa, coastal and inland, etc, and incorporating ingredients like hibiscus or baobab."
+    "Generate a vibrant and creative smoothie recipe inspired by diverse African flavors, such as Northern Africa, Central Africa, Southern Africa, coastal and inland, etc., incorporating ingredients like hibiscus or baobab."
 ]
 
 def get_prompt(random_choice=False):
@@ -94,7 +92,7 @@ def parse_recipe(content):
     Parses the recipe content into a structured dictionary.
     """
     logger.info("Parsing recipe...")
-    lines = content.split("\n")
+    lines = content.strip().split("\n")
     recipe = {
         "title": None,
         "description": None,
@@ -232,7 +230,7 @@ def generate_image(prompt):
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
-        "response_format": "b64_json"  # Request the image in base64 format
+        "response_format": "b64_json"
     }
     try:
         response = requests.post("https://api.openai.com/v1/images/generations", json=payload, headers=headers)
@@ -240,11 +238,6 @@ def generate_image(prompt):
         response.raise_for_status()
 
         response_data = response.json()
-        if 'error' in response_data:
-            error_message = response_data['error'].get('message', 'Unknown error')
-            logger.error(f"OpenAI API Error: {error_message}")
-            raise ValueError(f"OpenAI API Error: {error_message}")
-
         image_data = response_data["data"][0]["b64_json"]
         logger.info("Image data received from OpenAI.")
 
@@ -260,8 +253,8 @@ def generate_image(prompt):
         return image_filename
 
     except requests.exceptions.HTTPError as http_err:
-        logger.error(f"HTTP error occurred: {http_err}")
-        logger.error(f"Response content: {response.text}")
+        error_message = response.json().get('error', {}).get('message', '')
+        logger.error(f"HTTP error occurred: {http_err} - {error_message}")
         raise
     except Exception as e:
         logger.error(f"An error occurred during image generation: {e}")
@@ -294,17 +287,11 @@ def upload_recipe_to_sanity(recipe):
     }
 
     response = requests.post(mutation_url, json=payload, headers=headers)
-    logger.debug(f"Recipe Upload Response: {response.status_code},\n{response.json()}")
+    logger.debug(f"Recipe Upload Response: {response.status_code}, {response.text}")
     response.raise_for_status()
 
     mutation_data = response.json()
-    if "results" not in mutation_data or not mutation_data["results"]:
-        raise ValueError("Sanity mutation failed: 'results' not found in response")
-
     document_id = mutation_data["results"][0].get("id")
-    if not document_id:
-        raise ValueError(f"Sanity response is missing 'id': {mutation_data['results']}")
-
     logger.info(f"Recipe uploaded with ID: {document_id}")
     return document_id
 
@@ -317,20 +304,16 @@ def upload_image_asset(image_filename):
         logger.info(f"Uploading image '{image_filename}' to Sanity's Assets API...")
 
         # Read the image data from the file
-        try:
-            with open(image_filename, 'rb') as img_file:
-                image_data = img_file.read()
-            logger.info("Image read successfully.")
-        except Exception as e:
-            logger.error(f"Image reading failed: {e}")
-            raise ValueError("The provided image could not be read.")
+        with open(image_filename, 'rb') as img_file:
+            image_data = img_file.read()
+        logger.info("Image read successfully.")
 
         # Determine the content type based on file extension
         filename = os.path.basename(image_filename)
         ext = os.path.splitext(filename)[1].lower()
         if ext == '.png':
             content_type = 'image/png'
-        elif ext == '.jpg' or ext == '.jpeg':
+        elif ext in ('.jpg', '.jpeg'):
             content_type = 'image/jpeg'
         else:
             raise ValueError("Unsupported image file extension. Please use .png or .jpg/.jpeg.")
@@ -349,15 +332,14 @@ def upload_image_asset(image_filename):
 
         # Extract and return the asset document from the response
         image_asset = response.json()
-        if "document" in image_asset and "_id" in image_asset["document"]:
-            logger.info(f"Image uploaded successfully with asset ID: {image_asset['document']['_id']}")
-            return image_asset["document"]
-        else:
-            raise ValueError("Failed to retrieve asset ID from the uploaded image response.")
+        document = image_asset.get("document")
+        asset_id = document.get("_id")
+        logger.info(f"Image uploaded successfully with asset ID: {asset_id}")
+        return document
 
     except requests.exceptions.HTTPError as http_err:
-        logger.error(f"HTTP error occurred: {http_err}")
-        logger.error(f"Response content: {response.text}")
+        error_message = response.json().get('error', {}).get('message', '')
+        logger.error(f"HTTP error occurred: {http_err} - {error_message}")
         raise
     except Exception as e:
         logger.error(f"An error occurred during image upload: {e}")
