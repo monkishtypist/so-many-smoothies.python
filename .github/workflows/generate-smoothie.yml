@@ -3,7 +3,16 @@ name: Generate Smoothie Recipe
 on:
   schedule:
     - cron: "0 0 * * *" # Runs daily at Midnight UTC
-  workflow_dispatch: # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      random:
+        description: "Use a random prompt (true/false)"
+        required: false
+        default: "false"
+      dry_run:
+        description: "Run in dry-run mode (true/false)"
+        required: false
+        default: "false"
 
 jobs:
   generate:
@@ -32,4 +41,6 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           source .venv/bin/activate
-          python generate_smoothie.py
+          python generate_smoothie.py \
+            ${{ inputs.random == 'true' && '--random' || '' }} \
+            ${{ inputs.dry_run == 'true' && '--dry-run' || '' }}

@@ -23,11 +23,12 @@ logger = logging.getLogger(__name__)
 
 # Prompt defaults
 IMAGE_PROMPT_TEMPLATE = """
-An award-winning photo of [describe the smoothie and corresponding scene], captured with a [wide/smaller] aperture (f/[aperture value]) to [effect on focus].
+"A photograph of [describe the smoothie and corresponding scene], captured with a [wide/smaller] aperture (f/[aperture value]) to [effect on focus].
 The image features [lighting type], enhancing [specific details like textures or colors].
-The shutter speed is set to [value] to ensure [sharpness/clarity].
+The shutter speed is set to [value] to ensure [sharpness/clarity, etc].
 The composition draws the viewer's eye to [describe focal point] by making it the brightest spot in the frame.
 The overall mood is [describe atmosphere], replicating natural light with [mention any tools like reflectors].
+The image should not include any text or logos, focusing solely on the smoothie and its ingredients."
 """
 
 REPEATED_PROMPT = f"""
@@ -37,7 +38,7 @@ Description: A brief and appealing description of the smoothie.
 Ingredients: An unordered list of ingredients (1 per line).
 Steps: Step-by-step preparation instructions as an unordered list.
 Tags: Relevant tags for the smoothie recipe based on the purpose or health benefits, as well as the ingredients, as a comma-separated list.
-ImagePrompt: A creative image prompt to visually represent the smoothie using the following prompt template: {IMAGE_PROMPT_TEMPLATE}
+ImagePrompt: A creative and enticing image prompt to visually represent the smoothie using the following prompt template: {IMAGE_PROMPT_TEMPLATE}
 Format the response using these exact section headers. Do not include any extra text.
 """
 
