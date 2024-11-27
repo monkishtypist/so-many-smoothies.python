@@ -21,11 +21,11 @@ A Python script that uses OpenAI's API to generate unique smoothie recipes with 
    cd smoothie-recipe-generator
    ```
 2. Install dependencies:
-  ```bash
-  pip install -r requirements.txt
-  ```
+   ```bash
+   pip install -r requirements.txt
+   ```
 3. Set up environment variables:
-  - Create a .env file in the root directory with the following variables:
+   - Create a .env file in the root directory with the following variables:
     ```makefile
     SANITY_PROJECT_ID=your_sanity_project_id
     SANITY_DATASET=production
