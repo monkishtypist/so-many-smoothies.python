@@ -20,12 +20,10 @@ A Python script that uses OpenAI's API to generate unique smoothie recipes with 
    git clone https://github.com/yourusername/smoothie-recipe-generator.git
    cd smoothie-recipe-generator
    ```
-
 2. Install dependencies:
   ```bash
   pip install -r requirements.txt
   ```
-  
 3. Set up environment variables:
   - Create a .env file in the root directory with the following variables:
     ```makefile
