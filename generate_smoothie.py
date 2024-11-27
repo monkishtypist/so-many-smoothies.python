@@ -1,13 +1,14 @@
 # generate_smoothie.py
 
+import base64
+import logging
 import os
 import random
-import requests
 import re
-import logging
+import requests
+import uuid
 from datetime import datetime
 from dotenv import load_dotenv
-import base64
 
 # Load environment variables
 load_dotenv()
@@ -87,6 +88,21 @@ def fetch_recipe_from_openai(prompt):
     logger.debug(f"Raw Response Content:\n{content}\n")
 
     return parse_recipe(content)
+
+def generate_slug(title, existing_slugs):
+    """
+    Generates a unique slug from the given title.
+    """
+    import re
+    import uuid
+
+    # Normalize the title by replacing special characters and spaces
+    slug = re.sub(r'[^a-zA-Z0-9]+', '-', title.lower()).strip('-')
+
+    # Ensure uniqueness
+    while slug in existing_slugs:
+        slug = f"{slug}-{uuid.uuid4().hex[:6]}"
+    return slug
 
 def parse_recipe(content):
     """
@@ -192,7 +208,7 @@ def get_existing_recipes():
     """
     logger.info("Fetching existing recipes...")
     url = f"https://{SANITY_PROJECT_ID}.api.sanity.io/v1/data/query/{SANITY_DATASET}"
-    query = '*[_type == "smoothie"] { title, ingredients }'
+    query = '*[_type == "smoothie"] { title, ingredients, "slug": slug.current }'
     headers = {"Authorization": f"Bearer {SANITY_WRITE_TOKEN}"}
     response = requests.get(f"{url}?query={query}", headers=headers)
     response.raise_for_status()
@@ -271,6 +287,7 @@ def upload_recipe_to_sanity(recipe, recipe_prompt, image_prompt):
                 "create": {
                     "_type": "smoothie",
                     "title": recipe["title"],
+                    "slug": {"_type": "slug", "current": recipe["slug"]},
                     "description": recipe["description"],
                     "ingredients": recipe["ingredients"],
                     "steps": recipe["steps"],
@@ -432,12 +449,17 @@ def main(random_choice=False, dry_run=False):
 
         # Check for uniqueness
         existing_recipes = get_existing_recipes()
+        existing_slugs = {recipe.get("slug", "") for recipe in existing_recipes}
+
         is_unique, unique_title = is_unique_recipe(recipe["title"], recipe["ingredients"], existing_recipes)
         if not is_unique:
             logger.info(f"Duplicate recipe found for title: {recipe['title']} with identical ingredients. Skipping.")
             return
 
+        # Generate slug
         recipe["title"] = unique_title
+        recipe["slug"] = generate_slug(unique_title, existing_slugs)
+
 
         # Upload to Sanity
         upload_to_sanity(recipe, image_filename, recipe_prompt, image_prompt)
